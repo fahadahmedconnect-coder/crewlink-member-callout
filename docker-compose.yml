@@ -1,0 +1,67 @@
+version: '3.8'
+name: crewlink-fahad
+
+services:
+  db:
+    container_name: crewlink-fahad-db
+    image: postgres:15
+    environment:
+      POSTGRES_DB: crewlink
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - crewlink_fahad_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: crewlink-fahad-api
+    build: ./backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    container_name: crewlink-fahad-worker
+    build: ./backend
+    command: python manage.py process_sends
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    environment:
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  frontend:
+    container_name: crewlink-fahad-frontend
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api
+
+volumes:
+  crewlink_fahad_postgres_data:
