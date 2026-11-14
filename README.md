@@ -5,14 +5,18 @@ Union announcement system with Rule 1 (data isolation) and Rule 2 (no double sen
 ## Quick Start
 
 ```bash
-# 1. Configure OpenAI (optional, for AI cleanup)
+# 1. Clone the repository
+git clone https://github.com/fahadahmedconnect-coder/crewlink-member-callout.git
+cd crewlink-member-callout
+
+# 2. Configure OpenAI (optional, for AI cleanup)
 cp backend/.env.example backend/.env
 # Edit backend/.env and add your OPENAI_API_KEY
 
-# 2. Start all services
+# 3. Start all services
 docker compose up --build
 
-# 3. In another terminal, seed the database
+# 4. In another terminal, seed the database
 docker compose exec api python manage.py seed_data
 ```
 
